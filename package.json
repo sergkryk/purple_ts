@@ -2,10 +2,10 @@
   "name": "purple_ts",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "4-dummy/app.js",
   "scripts": {
     "start:serve": "tsc -w",
-    "start:run": "nodemon app.js",
+    "start:run": "nodemon",
     "start": "concurrently npm:start:*",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
