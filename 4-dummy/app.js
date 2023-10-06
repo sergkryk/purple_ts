@@ -1,56 +1,45 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-const API_URL = "https://dummyjson.com/users";
-function isObject(obj) {
-    return typeof obj === "object" && obj !== null && !Array.isArray(obj);
-}
+const API_URL = "https://dummyjson.com/users/";
+// type-guard который в качестве аргумента может получить any или unknown, не понимаю чем хуже unknown
 function isSuccess(response) {
-    if (isObject(response)) {
-        return "users" in response && "total" in response;
-    }
-    else {
-        return false;
-    }
+    return "users" in response && "total" in response;
 }
+// type-guard который в качестве аргумента может получить any или unknown, не понимаю чем хуже unknown
 function isUser(user) {
-    if (isObject(user)) {
-        return 'id' in user && 'userAgent' in user;
-    }
-    return false;
+    return "id" in user && "userAgent" in user;
 }
-function getUsers(urlString) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const response = yield fetch(urlString);
-        const data = yield response.json();
-        return data;
-    });
+// функция, возвращает  Promise<unknown> т.к. мы не можем быть на 100% уверенны, что получим список пользователей 
+async function getUsers(urlString) {
+    const response = await fetch(urlString);
+    if (!response.ok) {
+        throw new Error(`Error status: ${response.status}`);
+    }
+    /* unknown потому, что если будет ошибка в адресе запроса, то сюда может прилететь или
+    список юзеров или например один юзер, или вообще сообщении что запрос некоректный */
+    const data = await response.json();
+    return data;
 }
 function processUser(user) {
-    if (isUser(user)) {
-        console.log(`Пользователь с идентификационным номером ${user.id} имеет такой логин ${user.username}`);
-    }
+    console.log(`Пользователь с идентификационным номером ${user.id} имеет такой логин ${user.username}`);
 }
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const responseData = yield getUsers(API_URL);
-            if (isSuccess(responseData)) {
-                responseData.users.map(user => processUser(user));
-            }
+async function main() {
+    try {
+        const responseData = await getUsers(API_URL);
+        if (isSuccess(responseData)) {
+            responseData.users.forEach((user) => {
+                if (isUser(user)) {
+                    processUser(user);
+                }
+            });
         }
-        catch (error) {
-            if (error instanceof Error) {
-                console.log(error.message);
-            }
+        else {
+            throw new Error("Не удалось получить список пользователей, проверьте запрос!");
         }
-    });
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.log(error.message);
+        }
+    }
 }
 main();

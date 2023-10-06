@@ -1,4 +1,4 @@
-const API_URL: string = "https://dummyjson.com/users";
+const API_URL: string = "https://dummyjson.com/users/";
 
 interface IData {
   users: IUser[];
@@ -8,7 +8,7 @@ interface IData {
 }
 
 interface IUser {
-  id: 30;
+  id: number;
   firstName: string;
   lastName: string;
   maidenName: string;
@@ -66,42 +66,45 @@ interface ICompany {
   title: string;
 }
 
-function isObject(obj: unknown): obj is {} {
-  return typeof obj === "object" && obj !== null && !Array.isArray(obj)
+// type-guard который в качестве аргумента может получить any или unknown, не понимаю чем хуже unknown
+function isSuccess(response: any): response is IData {
+  return "users" in response && "total" in response;
 }
 
-function isSuccess(response: unknown): response is IData {
-  if (isObject(response)) {
-    return "users" in response && "total" in response;
-  } else {
-    return false;
-  }
+// type-guard который в качестве аргумента может получить any или unknown, не понимаю чем хуже unknown
+function isUser(user: any): user is IUser {
+  return "id" in user && "userAgent" in user;
 }
 
-function isUser(user: unknown): user is IUser {
-  if (isObject(user)) {
-    return 'id' in user && 'userAgent' in user;
-  }
-  return false;
-}
-
+// функция, возвращает  Promise<unknown> т.к. мы не можем быть на 100% уверенны, что получим список пользователей 
 async function getUsers(urlString: string): Promise<unknown> {
-    const response = await fetch(urlString);
-    const data: unknown = await response.json();
-    return data;
+  const response = await fetch(urlString);
+  if (!response.ok) {
+    throw new Error(`Error status: ${response.status}`);
+  }
+  /* unknown потому, что если будет ошибка в адресе запроса, то сюда может прилететь или 
+  список юзеров или например один юзер, или вообще сообщении что запрос некоректный */
+  const data: unknown = await response.json();
+  return data;
 }
 
-function processUser(user: unknown): void {
-  if (isUser(user)) {
-    console.log(`Пользователь с идентификационным номером ${user.id} имеет такой логин ${user.username}`);
-  }
+function processUser(user: IUser): void {
+    console.log(
+      `Пользователь с идентификационным номером ${user.id} имеет такой логин ${user.username}`
+    );
 }
 
 async function main(): Promise<void> {
   try {
     const responseData: unknown = await getUsers(API_URL);
     if (isSuccess(responseData)) {
-      responseData.users.map(user => processUser(user))
+      responseData.users.forEach((user) =>  {
+        if (isUser(user)) {
+          processUser(user)
+        }
+      });
+    } else {
+      throw new Error("Не удалось получить список пользователей, проверьте запрос!")
     }
   } catch (error) {
     if (error instanceof Error) {
