@@ -5,7 +5,7 @@
   "main": "./5-map/app.js",
   "scripts": {
     "start:serve": "tsc -w",
-    "start:run": "nodemon app.js",
+    "start:run": "nodemon",
     "start": "concurrently npm:start:*",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
