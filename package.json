@@ -2,7 +2,7 @@
   "name": "purple_ts",
   "version": "1.0.0",
   "description": "",
-  "main": "4-dummy/app.js",
+  "main": "./5-map/app.js",
   "scripts": {
     "start:serve": "tsc -w",
     "start:run": "nodemon",
